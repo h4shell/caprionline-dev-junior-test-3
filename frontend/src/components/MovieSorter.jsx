@@ -5,8 +5,9 @@ function MovieSorter({sortBy, setSortBy}) {
         setSortBy(event.target.value);
     }
     return (
-        <div>
-            <select value={sortBy} onChange={handleSortChange} >
+        <div className="grid">
+            <label for="sortBy">Ordina per:</label>
+            <select id="sortBy" value={sortBy} onChange={handleSortChange} >
                 <option value="year">Recenti</option>
                 <option value="rating">Rating</option>
                 <option value="title">titolo</option>

@@ -25,6 +25,16 @@ class MovieGenre
         return $this->id;
     }
 
+    public function getMovieId(): ?int
+    {
+        return $this->movie->getId();
+    }
+
+    public function getGenreId(): ?int
+    {
+        return $this->genre->getId();
+    }
+
     public function getMovie(): ?Movie
     {
         return $this->movie;

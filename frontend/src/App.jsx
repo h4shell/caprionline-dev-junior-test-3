@@ -9,9 +9,12 @@ import { MovieSorter } from './components/MovieSorter';
 
 const App = props => {
   const [movies, setMovies] = useState([]);
+  const [filteredMovies, setFilteredMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('year');
   const [filter, setFilter] = useState('all');
+  const [genres, setGenres] = useState([]);
+
 
   const fetchMovies = () => {
     setLoading(true);
@@ -19,10 +22,14 @@ const App = props => {
     return fetch('http://localhost:8000/movies')
       .then(response => response.json())
       .then(data => {
-        setMovies(handleSort(sortBy,data.movies));
+        setFilteredMovies(data.movies);
+        setGenres(data.genres);
+        setMovies(data.movies);
         setLoading(false);
       });
   }
+
+  
 
   function handleSort(sorter, movies){
     const sorted = [...movies].sort((a, b) => {
@@ -46,20 +53,23 @@ const App = props => {
     return sorted
   }
 
+  function handleMovies() {
+
+    const filtered = filter !== 'all' 
+    ? movies.filter(item => item.genre.includes(filter))
+    : movies;
+
+    const sorted = handleSort(sortBy, filtered);
+    setFilteredMovies([...sorted]);
+
+
+  }
+
   useEffect(() => {
-    if(movies.length&&sortBy) {
-    handleSort(sortBy, movies)
-    setMovies(handleSort(sortBy,movies));
-    }
+    
+    handleMovies();
 
-  }, [sortBy]);
-
-  useEffect(() => {
-
-    const filtered = filter !== 'all' ? movies.filter(item =>
-      item.genre.toLowerCase().includes(filter.toLowerCase())
-    ) : movies;
-  })
+  }, [sortBy, filter, movies]);
 
   useEffect(() => {
     fetchMovies();
@@ -67,16 +77,21 @@ const App = props => {
 
 
 
+
   return (
     <Layout>
       <Heading />
-      <MovieFilter filter={filter} setFilter={setFilter} />
-      <MovieSorter sortBy={sortBy} setSortBy={setSortBy} />
-      <MovieList loading={loading}>
-        {movies.map((item, key) => (
+      <MovieWrapper loading={loading}>
+      <div className="flex justify-between mb-4">
+        <MovieFilter filter={filter} setFilter={setFilter} genres={genres} />
+        <MovieSorter sortBy={sortBy} setSortBy={setSortBy} />
+      </div>
+      <MovieList >
+        {filteredMovies.map((item, key) => (
           <MovieItem key={key} {...item} />
         ))}
       </MovieList>
+      </MovieWrapper>
     </Layout>
   );
 };
@@ -106,6 +121,14 @@ const Heading = props => {
 };
 
 const MovieList = props => {
+  return (
+    <div className="grid gap-4 md:gap-y-8 xl:grid-cols-6 lg:grid-cols-4 md:grid-cols-3">
+      {props.children}
+    </div>
+  );
+};
+
+const MovieWrapper = props => {
   if (props.loading) {
     return (
       <div className="text-center">
@@ -115,7 +138,7 @@ const MovieList = props => {
   }
 
   return (
-    <div className="grid gap-4 md:gap-y-8 xl:grid-cols-6 lg:grid-cols-4 md:grid-cols-3">
+    <div className="">
       {props.children}
     </div>
   );
