@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Rating, Spinner } from 'flowbite-react';
+import { MovieFilter } from './components/MovieFilter';
+import { MovieSorter } from './components/MovieSorter';
+
+
+
+
 
 const App = props => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('year');
+  const [filter, setFilter] = useState('all');
 
   const fetchMovies = () => {
     setLoading(true);
@@ -11,19 +19,59 @@ const App = props => {
     return fetch('http://localhost:8000/movies')
       .then(response => response.json())
       .then(data => {
-        setMovies(data);
+        setMovies(handleSort(sortBy,data.movies));
         setLoading(false);
       });
   }
+
+  function handleSort(sorter, movies){
+    const sorted = [...movies].sort((a, b) => {
+      if(sorter === 'year') {
+        if(a.year < b.year) return -1;
+        if(a.year > b.year) return 1;
+        return 0
+      }
+      if(sorter === 'rating') {
+        if(a.rating < b.rating) return 1;
+        if(a.rating > b.rating) return -1;
+        return 0
+      }
+      if(sorter === 'title') {
+        if(a.title < b.title) return -1;
+        if(a.title > b.title) return 1;
+        return 0
+      }
+    })
+
+    return sorted
+  }
+
+  useEffect(() => {
+    if(movies.length&&sortBy) {
+    handleSort(sortBy, movies)
+    setMovies(handleSort(sortBy,movies));
+    }
+
+  }, [sortBy]);
+
+  useEffect(() => {
+
+    const filtered = filter !== 'all' ? movies.filter(item =>
+      item.genre.toLowerCase().includes(filter.toLowerCase())
+    ) : movies;
+  })
 
   useEffect(() => {
     fetchMovies();
   }, []);
 
+
+
   return (
     <Layout>
       <Heading />
-
+      <MovieFilter filter={filter} setFilter={setFilter} />
+      <MovieSorter sortBy={sortBy} setSortBy={setSortBy} />
       <MovieList loading={loading}>
         {movies.map((item, key) => (
           <MovieItem key={key} {...item} />
